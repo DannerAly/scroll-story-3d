@@ -184,12 +184,18 @@ footer a{color:inherit}
   document.documentElement.lang = lang;
   if (lang === 'en') document.querySelectorAll('[data-en]').forEach(el => { el.innerHTML = el.dataset.en; });
   document.querySelectorAll('[data-lang]').forEach(a => a.classList.toggle('on', a.dataset.lang === lang));
+  // navigator.clipboard solo existe en HTTPS; en HTTP se copia con un textarea temporal
+  const copy = text => navigator.clipboard && isSecureContext ? navigator.clipboard.writeText(text) : new Promise((ok, fail) => {
+    const ta = Object.assign(document.createElement('textarea'), { value: text });
+    ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+    const done = document.execCommand('copy'); ta.remove(); done ? ok() : fail();
+  });
   document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
     const label = b.querySelector('span'), prev = label.textContent;
-    navigator.clipboard?.writeText(b.dataset.copy).then(() => {
+    copy(b.dataset.copy).then(() => {
       label.textContent = lang === 'en' ? 'Copied ✓' : 'Copiado ✓';
       setTimeout(() => { label.textContent = prev; }, 1600);
-    });
+    }, () => {});
   }));
 })();
 </script>
