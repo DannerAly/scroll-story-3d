@@ -1,0 +1,14 @@
+{
+  "name": "scroll-story-3d",
+  "displayName": "Scroll Story 3D",
+  "description": "Apple-style scroll presentations in a single HTML file, with animated 3D characters (Three.js) that change formation on every section.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Aly Danner",
+    "url": "https://github.com/DannerAly"
+  },
+  "homepage": "https://danneraly.github.io/scroll-story-3d/",
+  "repository": "https://github.com/DannerAly/scroll-story-3d",
+  "license": "MIT",
+  "keywords": ["presentation", "landing-page", "scrollytelling", "threejs", "3d", "animation", "pitch-deck", "html"]
+}

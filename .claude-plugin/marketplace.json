@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "danneraly",
+  "description": "Claude Code skills by Aly Danner",
+  "owner": {
+    "name": "Aly Danner",
+    "url": "https://github.com/DannerAly"
+  },
+  "plugins": [
+    {
+      "name": "scroll-story-3d",
+      "source": ".",
+      "description": "Apple-style scroll presentations with animated 3D characters, in a single HTML file.",
+      "category": "design",
+      "tags": ["presentation", "landing-page", "threejs", "3d", "animation"]
+    }
+  ]
+}

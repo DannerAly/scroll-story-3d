@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scroll Story 3D</title>
+<meta name="description" content="A Claude skill that builds Apple-style scroll presentations with animated 3D characters. One HTML file, no build.">
+<meta property="og:title" content="Scroll Story 3D — a Claude skill">
+<meta property="og:description" content="Apple-style scroll presentations with animated 3D characters. One HTML file, no build. Just ask Claude.">
+<meta property="og:image" content="https://danneraly.github.io/scroll-story-3d/og.png">
+<meta property="og:url" content="https://danneraly.github.io/scroll-story-3d/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Marca: cambia estos valores ===== */
+:root{
+  --font:'Poppins';
+  --accent:#4F46E5;            /* color principal de la marca */
+  --accent-d:#3730A3;          /* versión oscura (eyebrow) */
+  --grad:linear-gradient(95deg,#3730A3 0%,#4F46E5 45%,#8B85F7 100%);
+  --bg:#ffffff;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#a1a1a6;--line:#e6e6eb;--soft:#f5f5f7;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font),ui-sans-serif,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
+#tags{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.tag{position:absolute;left:0;top:0;opacity:0;white-space:nowrap;font-size:12px;font-weight:500;color:var(--ink);background:rgba(255,255,255,.9);border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 18px rgba(0,0,0,.06);padding:5px 11px;border-radius:999px;will-change:transform,opacity}
+
+main{position:relative;z-index:2;overflow-x:clip}
+section{position:relative;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 max(20px,5vw)}
+section.pin{display:block;height:auto;padding:0}
+.sticky{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;padding:0 max(20px,5vw);text-align:center}
+
+.eyebrow{font-size:clamp(11px,.95vw,13px);font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-d);margin-bottom:22px}
+h1{font-size:clamp(46px,8.6vw,136px);font-weight:600;letter-spacing:-.048em;line-height:1.02}
+h2{font-size:clamp(38px,6vw,92px);font-weight:600;letter-spacing:-.045em;line-height:1.04}
+.lead{font-size:clamp(17px,1.6vw,24px);color:var(--ink2);margin-top:26px;letter-spacing:-.012em}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:34px}
+.chips span{font-size:13px;font-weight:500;padding:9px 16px;border-radius:999px;background:var(--soft)}
+
+.r{opacity:0;transform:translate3d(0,42px,0);filter:blur(10px);transition:opacity 1.2s var(--ease) var(--d,0s),transform 1.3s var(--ease) var(--d,0s),filter 1.2s var(--ease) var(--d,0s)}
+.r.in{opacity:1;transform:none;filter:none}
+
+.cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-size:11px;font-weight:500;color:var(--ink3);letter-spacing:.2em;text-transform:uppercase}
+.cue i{display:block;width:1px;height:40px;background:linear-gradient(var(--ink3),transparent);animation:cue 2.2s var(--ease) infinite;transform-origin:top}
+@keyframes cue{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{opacity:0}}
+
+.words{max-width:1100px;font-size:clamp(30px,4.6vw,70px);font-weight:600;letter-spacing:-.038em;line-height:1.14;margin-top:-12vh}
+.words .w{opacity:.13}
+
+.steps-sec .sticky,.top{align-items:flex-start;padding-top:max(80px,12vh)}
+.head{width:100%;max-width:1000px}
+.stages{position:relative;height:clamp(150px,23vh,250px)}
+.stage{position:absolute;left:0;right:0;top:0;opacity:0;transform:translate3d(0,36px,0);filter:blur(10px);transition:opacity .7s var(--ease),transform .9s var(--ease),filter .7s var(--ease)}
+.stage.past{transform:translate3d(0,-36px,0)}
+.stage.on{opacity:1;transform:none;filter:none}
+.stage .num{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.12em}
+.stage h3{font-size:clamp(40px,6.6vw,100px);font-weight:600;letter-spacing:-.048em;line-height:1.02;margin-top:6px}
+.stage p{font-size:clamp(15px,1.5vw,22px);color:var(--ink2);margin-top:14px}
+.ticks{display:flex;gap:8px;justify-content:center}
+.ticks i{display:block;width:22px;height:4px;border-radius:4px;background:var(--line);transition:width .6s var(--ease),background .6s}
+.ticks i.done{background:color-mix(in srgb,var(--accent) 35%,white)}
+.ticks i.on{width:46px;background:var(--accent)}
+.loop h2{font-size:clamp(38px,5.4vw,82px)}
+.cta-in{margin-top:-30vh}
+footer{position:relative;z-index:2;padding:30px 20px 46px;text-align:center;font-size:12px;color:var(--ink3);letter-spacing:.08em}
+footer a{color:inherit}
+
+/* ===== Demo: barra superior, idioma, estrella e instalación ===== */
+.bar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px max(16px,3vw);pointer-events:none}
+.bar>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand i{display:block;width:18px;height:17px;border-radius:5px;background:var(--accent);position:relative}
+.brand i::after{content:"";position:absolute;left:3px;right:3px;top:4px;height:5px;border-radius:2px;background:#15151c}
+.bar nav{display:flex;align-items:center;gap:8px}
+.lang{display:flex;font-size:12px;font-weight:600;letter-spacing:.06em;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:999px;padding:3px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.lang a{color:var(--ink3);text-decoration:none;padding:5px 9px;border-radius:999px}
+.lang a.on{color:var(--ink);background:var(--soft)}
+.star{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:#fff;background:var(--ink);text-decoration:none;padding:8px 15px;border-radius:999px;transition:transform .4s var(--ease),background .3s}
+.star:hover{transform:translateY(-1px);background:#000}
+.star svg{width:15px;height:15px;fill:currentColor}
+.install{display:inline-flex;align-items:center;gap:12px;margin-top:34px;font:500 clamp(12px,1.1vw,15px)/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px 14px 18px;cursor:pointer;max-width:100%;transition:border-color .3s}
+.install:hover{border-color:color-mix(in srgb,var(--accent) 40%,white)}
+.install code{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.install code b{color:var(--accent);font-weight:500}
+.install span{font-family:var(--font),sans-serif;font-size:12px;font-weight:600;color:var(--accent-d);white-space:nowrap}
+.chips a{font-size:13px;font-weight:500;padding:9px 16px;border-radius:999px;background:var(--soft);color:var(--ink);text-decoration:none}
+.chips a:hover{background:var(--line)}
+@media (max-width:520px){
+  .brand b{display:none}.star{padding:8px 12px}
+  .install{flex-direction:column;gap:9px;max-width:calc(100vw - 40px);padding:14px 16px}
+  .install code{white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-align:center}
+}
+@media (max-aspect-ratio:9/10){.tag{font-size:10.5px;padding:4px 9px}}
+@media (prefers-reduced-motion:reduce){.r{transition:none;opacity:1;transform:none;filter:none}.cue i{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div id="tags" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="brand" href="https://github.com/DannerAly/scroll-story-3d"><i></i><b>scroll-story-3d</b></a>
+  <nav>
+    <div class="lang"><a href="?lang=es" data-lang="es">ES</a><a href="?lang=en" data-lang="en">EN</a></div>
+    <a class="star" href="https://github.com/DannerAly/scroll-story-3d"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg><span data-en="Star on GitHub">Estrella en GitHub</span></a>
+  </nav>
+</header>
+
+<main>
+  <!-- Portada -->
+  <section data-f="hero">
+    <div data-hero>
+      <p class="eyebrow r" data-en="A Claude skill · Open source">Skill para Claude · Open source</p>
+      <h1 class="r" style="--d:.12s" data-en="Your idea,<br><span class=&quot;grad&quot;>in 3D.</span>">Tu idea,<br><span class="grad">en 3D.</span></h1>
+      <p class="lead r" style="--d:.28s" data-en="Scroll presentations with 3D characters. Just ask Claude.">Presentaciones de scroll con personajes 3D. Pídeselas a Claude.</p>
+    </div>
+    <div class="cue"><span data-en="Scroll">Desliza</span><i></i></div>
+  </section>
+
+  <!-- Frase que se ilumina palabra por palabra -->
+  <section class="pin" data-f="parade" data-pin style="height:240vh">
+    <div class="sticky"><p class="words" data-words data-en="Great ideas don't slide sideways: they unfold as you scroll, one screen at a time.">Las mejores ideas no se pasan de lado: se recorren hacia abajo, una pantalla a la vez.</p></div>
+  </section>
+
+  <!-- Pasos: uno por personaje (CONFIG.roles, mismo orden) -->
+  <section class="pin steps-sec" data-f="steps" data-pin style="height:620vh">
+    <div class="sticky">
+      <div class="head">
+        <p class="eyebrow" data-en="How it works">Cómo funciona</p>
+        <div class="stages">
+          <div class="stage on"><span class="num">01</span><h3 data-en="Tell Claude">Cuéntale a Claude</h3><p data-en="It writes the content first.">Primero escribe el contenido.</p></div>
+          <div class="stage"><span class="num">02</span><h3 data-en="Less text">Menos texto</h3><p data-en="2 to 8 words per screen.">De 2 a 8 palabras por pantalla.</p></div>
+          <div class="stage"><span class="num">03</span><h3 data-en="One idea, one shape">Una idea, una forma</h3><p data-en="Every section moves the characters.">Cada sección mueve a los personajes.</p></div>
+          <div class="stage"><span class="num">04</span><h3 data-en="Your brand">Tu marca</h3><p data-en="One color, one typeface. That's it.">Un color y una tipografía. Nada más.</p></div>
+          <div class="stage"><span class="num">05</span><h3 data-en="Visual check">Revisión visual</h3><p data-en="Screenshots on desktop and mobile.">Capturas en escritorio y celular.</p></div>
+          <div class="stage"><span class="num">06</span><h3 data-en="Ready to share">Lista para compartir</h3><p data-en="One file. Any browser.">Un archivo. Cualquier navegador.</p></div>
+        </div>
+        <div class="ticks"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grilla con etiquetas -->
+  <section class="top" data-f="grid">
+    <div><p class="eyebrow r" data-en="A label on every character">Una etiqueta sobre cada personaje</p><h2 class="r" style="--d:.1s" data-en="One for every role.">Uno para cada rol.</h2></div>
+  </section>
+
+  <!-- Ronda -->
+  <section class="loop" data-f="ring">
+    <div>
+      <h2 class="r" data-en="Ask. Look. Tweak.">Pedir. Ver. Ajustar.</h2>
+      <p class="lead r" style="--d:.12s" data-en="Until it's exactly right.">Hasta que quede perfecta.</p>
+    </div>
+  </section>
+
+  <!-- Cierre -->
+  <section data-f="party">
+    <div class="cta-in">
+      <p class="eyebrow r" data-en="Free &amp; open source">Gratis y open source</p>
+      <h2 class="r" style="--d:.08s" data-en="Make yours.<br><span class=&quot;grad&quot;>Leave a star.</span>">Haz la tuya.<br><span class="grad">Deja una estrella.</span></h2>
+      <div class="r" style="--d:.15s"><button class="install" type="button" data-copy="/plugin marketplace add DannerAly/scroll-story-3d"><code><b>/plugin</b> marketplace add DannerAly/scroll-story-3d</code><span data-en="Copy">Copiar</span></button></div>
+      <div class="chips r" style="--d:.22s"><a href="https://github.com/DannerAly/scroll-story-3d">GitHub</a><a href="https://github.com/DannerAly/scroll-story-3d#install" data-en="Install guide">Cómo instalar</a><a href="https://github.com/DannerAly/scroll-story-3d/releases/latest" data-en="Download .zip">Descargar .zip</a></div>
+    </div>
+  </section>
+</main>
+<footer><span data-en="Made with Claude Code by">Hecho con Claude Code por</span> <a href="https://github.com/DannerAly">Aly Danner</a> · MIT</footer>
+
+<script>
+/* Idioma del demo: ?lang=es|en, si no, el del navegador. Corre antes del motor para que [data-words] se parta ya traducido. */
+(() => {
+  const q = new URLSearchParams(location.search).get('lang');
+  const lang = q === 'en' || q === 'es' ? q : (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+  document.documentElement.lang = lang;
+  if (lang === 'en') document.querySelectorAll('[data-en]').forEach(el => { el.innerHTML = el.dataset.en; });
+  document.querySelectorAll('[data-lang]').forEach(a => a.classList.toggle('on', a.dataset.lang === lang));
+  document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+    const label = b.querySelector('span'), prev = label.textContent;
+    navigator.clipboard?.writeText(b.dataset.copy).then(() => {
+      label.textContent = lang === 'en' ? 'Copied ✓' : 'Copiado ✓';
+      setTimeout(() => { label.textContent = prev; }, 1600);
+    });
+  }));
+})();
+</script>
+
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+/* Motor de scroll: suaviza el scroll, anima el texto, navega con flechas y le dice a la escena 3D qué formación mostrar. */
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lenis = (window.Lenis && !reduce) ? new Lenis({ lerp: 0.09, smoothWheel: true }) : null;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const sstep = (a, b, v) => { const x = clamp((v - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+
+  document.querySelectorAll('[data-words]').forEach(el => {
+    el.innerHTML = el.textContent.trim().split(/\s+/).map(w => '<span class="w">' + w + '</span>').join(' ');
+  });
+  const words = [...document.querySelectorAll('[data-words] .w')];
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('in');
+    else if (e.boundingClientRect.top > 0) e.target.classList.remove('in');
+  }), { threshold: 0.15 });
+  document.querySelectorAll('.r').forEach(el => io.observe(el));
+
+  // Cada sección con data-f tiene un rango de scroll donde su formación se mantiene.
+  const secs = [...document.querySelectorAll('[data-f]')];
+  let geo = [], vh = innerHeight;
+  function measure() {
+    vh = innerHeight;
+    geo = secs.map(el => {
+      const top = el.getBoundingClientRect().top + scrollY, h = el.offsetHeight;
+      if (el.hasAttribute('data-pin')) return { f: el.dataset.f, start: top, end: Math.max(top + 1, top + h - vh) };
+      const c = top + h / 2 - vh / 2;
+      return { f: el.dataset.f, start: c - vh * 0.12, end: c + vh * 0.12 };
+    });
+  }
+  function stateAt(S) {
+    const n = geo.length;
+    if (S <= geo[0].end) return { a: 0, b: 0, t: 0 };
+    for (let k = 0; k < n; k++) {
+      const g = geo[k];
+      if (S >= g.start && S <= g.end) return { a: k, b: k, t: 0 };
+      if (k < n - 1 && S > g.end && S < geo[k + 1].start) return { a: k, b: k + 1, t: (S - g.end) / (geo[k + 1].start - g.end) };
+    }
+    return { a: n - 1, b: n - 1, t: 0 };
+  }
+  const stepTo = (list, act) => list.forEach((s, i) => { s.classList.toggle('on', i === act); s.classList.toggle('past', i < act); });
+
+  // Secciones de pasos: las de data-f="steps" usan avance con pausas (para el carrusel 3D); el resto, un paso por tramo.
+  const pinned = secs.map(el => ({ el, stages: [...el.querySelectorAll('.stage')], ticks: [...el.querySelectorAll('.ticks i')], act: 0 }));
+  const hero = document.querySelector('[data-hero]');
+  const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+  addEventListener('pointermove', e => { mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = -(e.clientY / innerHeight * 2 - 1); }, { passive: true });
+  let S = scrollY, last = performance.now(), stepA = 0;
+
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000)); last = now;
+    if (lenis) lenis.raf(now);
+    const y = scrollY;
+    S = reduce ? y : S + (y - S) * (1 - Math.exp(-dt * (lenis ? 22 : 10)));
+    if (Math.abs(y - S) < 0.1) S = y;
+    mouse.x += (mouse.tx - mouse.x) * (1 - Math.exp(-dt * 3.5));
+    mouse.y += (mouse.ty - mouse.y) * (1 - Math.exp(-dt * 3.5));
+
+    if (hero) {
+      const he = clamp(S / vh, 0, 1);
+      hero.style.transform = 'translate3d(0,' + (S * 0.3).toFixed(1) + 'px,0) scale(' + (1 - he * 0.08).toFixed(4) + ')';
+      hero.style.opacity = clamp(1 - he * 1.5, 0, 1).toFixed(3);
+    }
+    const ps = geo.map(g => clamp((S - g.start) / (g.end - g.start), 0, 1));
+    secs.forEach((el, k) => {
+      if (el.dataset.f === 'parade') {
+        const n = words.length;
+        words.forEach((w, i) => { w.style.opacity = (0.13 + 0.87 * clamp(ps[k] * (n + 3) - i - 1, 0, 1)).toFixed(2); });
+      }
+      const P = pinned[k];
+      if (!P.stages.length) return;
+      let act;
+      if (el.dataset.f === 'steps') {
+        const x = ps[k] * (P.stages.length - 1), j = Math.min(P.stages.length - 1, Math.floor(x));
+        stepA = j + sstep(0.3, 0.7, x - j); act = Math.round(stepA);
+      } else act = Math.min(P.stages.length - 1, Math.floor(ps[k] * P.stages.length));
+      if (act !== P.act) {
+        P.act = act; stepTo(P.stages, act);
+        P.ticks.forEach((t, i) => { t.classList.toggle('on', i === act); t.classList.toggle('done', i < act); });
+      }
+    });
+
+    const st = stateAt(S);
+    if (window.__render) window.__render({ fa: geo[st.a].f, fb: geo[st.b].f, t: st.t, pa: ps[st.a], pb: ps[st.b], step: stepA, sv: S / vh, mouse, dt, time: now / 1000, reduce });
+    requestAnimationFrame(frame);
+  }
+
+  // Navegación con flechas: paradas en el centro de cada sección y de cada paso
+  function stops() {
+    const out = [];
+    geo.forEach((g, k) => {
+      const el = secs[k];
+      if (!el.hasAttribute('data-pin')) { out.push((g.start + g.end) / 2); return; }
+      const n = pinned[k].stages.length, span = g.end - g.start;
+      const qs = el.dataset.f === 'steps' ? pinned[k].stages.map((_, i) => i / (n - 1)) : n ? Array.from({ length: n }, (_, i) => (i + 0.5) / n) : [1];
+      qs.forEach(q => out.push(g.start + q * span));
+    });
+    return out.map(Math.round);
+  }
+  let nav = { y: 0, t: -1e9 };
+  function go(dir) {
+    const y = performance.now() - nav.t < 1200 ? nav.y : scrollY, list = stops();
+    const target = dir > 0 ? list.find(v => v > y + 4) : [...list].reverse().find(v => v < y - 4);
+    if (target === undefined) return;
+    nav = { y: target, t: performance.now() };
+    if (lenis) lenis.scrollTo(target, { duration: 1.1 }); else scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(e.shiftKey && e.key === ' ' ? -1 : 1); }
+    else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(-1); }
+  });
+
+  measure();
+  addEventListener('resize', measure);
+  addEventListener('load', measure);
+  if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* Escena 3D: personajes de bloques que cambian de formación según la sección. */
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ===== Configuración: nombres de los personajes (uno por paso en la sección "steps") =====
+const CONFIG = {
+  roles: document.documentElement.lang === 'en'
+    ? ['Idea', 'Copy', 'Shape', 'Brand', 'Review', 'Ship']
+    : ['Idea', 'Texto', 'Forma', 'Marca', 'Revisión', 'Entrega'],
+  extras: 6,   // personajes sin etiqueta, para que las formaciones se vean llenas
+};
+
+const css = getComputedStyle(document.documentElement);
+const ACCENT = new THREE.Color(css.getPropertyValue('--accent').trim() || '#4F46E5');
+const canvas = document.getElementById('stage'), tagsEl = document.getElementById('tags');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.setClearColor(0xffffff, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(), CAM_Z = 12;
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 120);
+camera.position.set(0, 0, CAM_Z);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xe9e6f2, 0.45));
+const key = new THREE.DirectionalLight(0xffffff, 1.25); key.position.set(4, 9, 5); scene.add(key);
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const outBounce = x => { const n1 = 7.5625, d1 = 2.75; if (x < 1 / d1) return n1 * x * x; if (x < 2 / d1) return n1 * (x -= 1.5 / d1) * x + 0.75; if (x < 2.5 / d1) return n1 * (x -= 2.25 / d1) * x + 0.9375; return n1 * (x -= 2.625 / d1) * x + 0.984375; };
+const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
+const lerpAngle = (a, b, t) => a + wrapPi(b - a) * t;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+const ROLES = CONFIG.roles, N = ROLES.length + CONFIG.extras;
+const R = Array.from({ length: N }, (_, i) => hash(i + 1)), R2 = Array.from({ length: N }, (_, i) => hash(i + 101));
+
+// ---------- personaje original: cuerpo redondeado, visor oscuro con dos ojos, brazos y patas cortas ----------
+const body = new THREE.MeshPhysicalMaterial({ color: ACCENT, roughness: 0.5, clearcoat: 0.3, clearcoatRoughness: 0.4, envMapIntensity: 0.6 });
+const visorMat = new THREE.MeshPhysicalMaterial({ color: 0x15151c, roughness: 0.15, clearcoat: 1 });
+const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+const gBody = new RoundedBoxGeometry(1, 0.95, 0.85, 5, 0.22);
+const gVisor = new RoundedBoxGeometry(0.78, 0.3, 0.1, 3, 0.08);
+const gEye = new THREE.SphereGeometry(0.055, 16, 12);
+const gArm = new RoundedBoxGeometry(0.16, 0.34, 0.2, 3, 0.07);
+const gLeg = new RoundedBoxGeometry(0.2, 0.2, 0.24, 3, 0.07);
+const gShadow = new THREE.PlaneGeometry(1.6, 0.42);
+const shTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(30,30,50,.5)'); grd.addColorStop(0.45, 'rgba(30,30,50,.18)'); grd.addColorStop(1, 'rgba(30,30,50,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+
+function makeCharacter(i) {
+  const root = new THREE.Group(), b = new THREE.Group(); root.add(b);
+  b.add(new THREE.Mesh(gBody, body));
+  const visor = new THREE.Mesh(gVisor, visorMat); visor.position.set(0, 0.12, 0.41); b.add(visor);
+  const eyes = [-1, 1].map(sx => { const e = new THREE.Mesh(gEye, eyeMat); e.position.set(sx * 0.17, 0.12, 0.47); b.add(e); return e; });
+  const arms = [-1, 1].map(sx => { const p = new THREE.Group(); p.position.set(sx * 0.5, -0.05, 0); const m = new THREE.Mesh(gArm, body); m.position.set(sx * 0.06, -0.14, 0); p.add(m); b.add(p); return p; });
+  const legs = [-1, 1].map(sx => { const p = new THREE.Group(); p.position.set(sx * 0.22, -0.45, 0); const m = new THREE.Mesh(gLeg, body); m.position.y = -0.1; p.add(m); b.add(p); return p; });
+  scene.add(root);
+  const shadow = new THREE.Mesh(gShadow, new THREE.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false, toneMapped: false, opacity: 0 }));
+  scene.add(shadow);
+  let tag = null;
+  if (i < ROLES.length) { tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = ROLES[i]; tagsEl.appendChild(tag); }
+  return { root, b, eyes, arms, legs, shadow, tag, tagOn: false, phase: R[i] * 6.283, blinkAt: 1 + R2[i] * 4, blinkEnd: 0, yaw: 0, pitch: 0 };
+}
+const chars = Array.from({ length: N }, (_, i) => makeCharacter(i));
+const FOOT = 0.66; // distancia del centro del cuerpo al piso, en unidades del personaje
+
+// ---------- campo de puntos ondulante ----------
+const FX = 150, FZ = 56, fpos = new Float32Array(FX * FZ * 3);
+for (let z = 0, p = 0; z < FZ; z++) for (let x = 0; x < FX; x++) { fpos[p++] = (x / (FX - 1) - 0.5) * 34; fpos[p++] = 0; fpos[p++] = -20 + z / (FZ - 1) * 24; }
+const fieldGeo = new THREE.BufferGeometry(); fieldGeo.setAttribute('position', new THREE.BufferAttribute(fpos, 3));
+const fieldMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false,
+  uniforms: { uTime: { value: 0 }, uOpacity: { value: 1 }, uPR: { value: renderer.getPixelRatio() }, uColor: { value: new THREE.Color(0xb4b4bb) }, uAccent: { value: ACCENT.clone() } },
+  vertexShader: `uniform float uTime; uniform float uPR; varying float vFade; varying float vH;
+    void main(){ vec3 p = position;
+      float w = sin(p.x*0.35 + uTime*0.6)*0.35 + cos(p.z*0.45 + uTime*0.4)*0.35 + sin((p.x+p.z)*0.2 + uTime*0.3)*0.25;
+      p.y += w; vH = w; vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
+      gl_PointSize = uPR * 2.1 * (13.0 / -mv.z); vFade = smoothstep(34.0, 14.0, -mv.z) * smoothstep(17.0, 9.0, abs(p.x)); }`,
+  fragmentShader: `uniform vec3 uColor; uniform vec3 uAccent; uniform float uOpacity; varying float vFade; varying float vH;
+    void main(){ vec2 c = gl_PointCoord - 0.5; if (dot(c, c) > 0.25) discard;
+      gl_FragColor = vec4(mix(uColor, uAccent, smoothstep(0.5, 0.95, vH)), vFade * uOpacity * 0.85);
+      #include <colorspace_fragment>
+    }`
+});
+const field = new THREE.Points(fieldGeo, fieldMat); field.position.y = -3.4; scene.add(field);
+const FIELD = { hero: 1, parade: 0.5, steps: 0.55, grid: 0.25, ring: 0.5, party: 1 };
+
+// ---------- viewport ----------
+const V = { w: 1, h: 1, portrait: false }; let U = 1;
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  V.h = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * CAM_Z; V.w = V.h * camera.aspect; V.portrait = camera.aspect < 0.9;
+  U = V.portrait ? Math.min(V.w / 4.4, V.h / 5) : Math.min(V.w / 9, V.h / 4.6);
+}
+resize(); addEventListener('resize', resize);
+
+// ---------- formaciones: dónde está cada personaje en cada sección ----------
+const F = {
+  hero(i, c) { // ronda alrededor del título (deja libre el centro inferior para "Desliza")
+    const P = c.V.portrait, top = i % 2 === 1, k = i >> 1, n = top ? Math.floor(N / 2) : Math.ceil(N / 2), m = P ? 0.32 : 0.42;
+    const a0 = top ? m : Math.PI + m, a1 = top ? Math.PI - m : 2 * Math.PI - m;
+    const ang = a0 + (a1 - a0) * ((k + 0.5) / n) + (R[i] - 0.5) * 0.12;
+    return { x: Math.cos(ang) * c.V.w * 0.4, y: Math.sin(ang) * c.V.h * 0.36 + Math.sin(c.t * 0.9 + i) * 0.06 * c.u, z: (R2[i] - 0.55) * 3, s: c.u * (0.34 + R2[i] * 0.2), yaw: -Math.cos(ang) * 0.4, look: 1 };
+  },
+  parade(i, c) { // caminan en fila al pie
+    const span = c.V.w * (c.V.portrait ? 1.05 : 0.84);
+    return { x: -span / 2 + (i + 0.5) * span / N + (c.p - 0.5) * c.V.w * 0.16, y: -c.V.h * 0.37, z: 0.3, s: c.u * (c.V.portrait ? 0.21 : 0.27), yaw: 0.9, walk: 1 };
+  },
+  steps(i, c) { // carrusel: el paso activo al frente; los extras esperan atrás
+    if (i >= ROLES.length) return { x: (R[i] - 0.5) * c.V.w * 0.8, y: -c.V.h * 0.42, z: -6, s: c.u * 0.25, yaw: 0, walk: 0.3 };
+    const d = i - c.step, ad = Math.abs(d), focus = Math.max(0, 1 - ad);
+    return { x: d * c.V.w * (c.V.portrait ? 0.6 : 0.24), y: -c.V.h * 0.18 - ad * ad * 0.05 * c.u, z: -Math.min(ad, 4) * 1.4 + focus * 0.5,
+      s: c.u * (0.34 + 0.3 * focus) * (1 - Math.min(ad, 3) * 0.06), yaw: -clamp(d, -1, 1) * 0.5, look: focus * 0.7, label: clamp(1 - ad * 1.8, 0, 1), active: focus * focus };
+  },
+  grid(i, c) { // grilla con nombres
+    const P = c.V.portrait, cols = P ? 3 : Math.min(6, N), rows = Math.ceil(N / cols), col = i % cols, row = Math.floor(i / cols);
+    const gx = P ? c.V.w * 0.3 : Math.min(c.V.w * 0.13, c.u * 1.75), gy = P ? c.V.h * 0.12 : c.V.h * 0.2;
+    return { x: (col - (cols - 1) / 2) * gx, y: -c.V.h * 0.12 - (row - (rows - 1) / 2) * gy, z: 0, s: c.u * (P ? 0.3 : 0.42), yaw: (col - (cols - 1) / 2) * -0.1, look: 1, label: 1 };
+  },
+  ring(i, c) { // giran alrededor del texto
+    const P = c.V.portrait, R0 = P ? c.V.w * 0.44 : Math.min(c.V.w * 0.36, c.V.h * 0.7), tilt = P ? 0.5 : 0.36;
+    const ang = (i / N) * Math.PI * 2 + c.t * 0.22 + c.sv * 0.5, lx = Math.cos(ang) * R0, lz = Math.sin(ang) * R0;
+    return { x: lx, y: c.V.h * (P ? 0 : 0.03) - lz * Math.sin(tilt), z: lz * Math.cos(tilt), s: c.u * (P ? 0.3 : 0.34), yaw: wrapPi(-ang), walk: 1 };
+  },
+  party(i, c) { // arco al pie que salta en ola
+    const k = i / (N - 1) - 0.5, span = c.V.portrait ? c.V.w * 0.96 : Math.min(c.V.w * 0.8, c.u * 14);
+    return { x: k * span, y: -c.V.h * 0.27 + (0.25 - k * k) * c.u * 0.9, z: -Math.abs(k) * 1.6, s: c.u * (c.V.portrait ? 0.17 : 0.26), yaw: -k * 0.9, look: 1, wave: 0.6, hopL: Math.max(0, Math.sin(c.t * 4.2 - i * 0.55)) * 0.55 };
+  }
+};
+
+// ---------- render ----------
+const KEYS = ['x', 'y', 'z', 's', 'pitch', 'look', 'label', 'walk', 'active', 'wave', 'hopL'];
+const cur = {}, tmp = new THREE.Vector3();
+let t0 = null;
+window.__render = st => {
+  const t = st.time; if (t0 === null) t0 = t;
+  const base = { V, u: U, t, step: st.step, sv: st.sv };
+  const ca = Object.assign({}, base, { p: st.pa }), cb = Object.assign({}, base, { p: st.pb });
+  const FA = F[st.fa] || F.hero, FB = F[st.fb] || F.hero, same = st.fa === st.fb;
+  camera.position.set(st.mouse.x * 0.4, st.mouse.y * 0.22, CAM_Z); camera.lookAt(0, 0, 0);
+  const mwx = st.mouse.x * V.w / 2, mwy = st.mouse.y * V.h / 2, kS = 1 - Math.exp(-st.dt * 7);
+
+  for (let i = 0; i < N; i++) {
+    const a = chars[i], A = FA(i, ca), B = same ? A : FB(i, cb);
+    const e = same ? 0 : ease(clamp(st.t * 1.5 - R[i] * 0.5, 0, 1));   // escalonado por personaje
+    for (const k of KEYS) cur[k] = lerp(A[k] || 0, B[k] || 0, e);
+    const travel = same ? 0 : Math.sin(Math.PI * e);
+    const ki = st.reduce ? 1 : clamp((t - t0 - 0.2 - R[i] * 0.8) / 1.2, 0, 1); // entrada: caen rebotando
+    const lift = travel * U * 0.9 + (1 - outBounce(ki)) * V.h;
+    const sc = Math.max(1e-4, cur.s * Math.min(1, ki * 4));
+    a.root.position.set(cur.x, cur.y + lift, cur.z); a.root.scale.setScalar(sc);
+    const ly = clamp((mwx - cur.x) * 0.12, -0.55, 0.55) * cur.look, lp = clamp(-(mwy - cur.y) * 0.1, -0.3, 0.3) * cur.look;
+    a.yaw += wrapPi(lerpAngle(A.yaw || 0, B.yaw || 0, e) + ly + travel * (R2[i] > 0.5 ? 0.7 : -0.7) - a.yaw) * kS;
+    a.pitch += (cur.pitch + lp - a.pitch) * kS;
+    a.root.rotation.set(a.pitch, a.yaw, 0);
+
+    const ph = a.phase, ws = Math.sin(t * 10 + ph);
+    a.b.position.y = Math.sin(t * 1.7 + ph) * 0.035 + Math.abs(ws) * 0.05 * cur.walk + cur.active * Math.max(0, Math.sin(t * 5.2 + ph)) * 0.32 + cur.hopL;
+    a.b.rotation.z = ws * 0.06 * cur.walk;
+    a.legs[0].rotation.x = ws * 0.6 * cur.walk; a.legs[1].rotation.x = -ws * 0.6 * cur.walk;
+    const wave = Math.max(cur.wave, cur.active * 0.8);
+    a.arms[1].rotation.z = wave * (1.4 + Math.sin(t * 9 + ph) * 0.4) + travel * 0.8;
+    a.arms[0].rotation.z = -cur.active * 0.6 - travel * 0.8;
+    if (t > a.blinkAt) { a.blinkEnd = t + 0.13; a.blinkAt = t + 2.2 + Math.random() * 3.5; }
+    a.eyes[0].scale.y = a.eyes[1].scale.y = t < a.blinkEnd ? 0.15 : 1;
+
+    const f = clamp(1 - lift / (U * 1.4), 0, 1) * Math.min(1, ki * 4);
+    a.shadow.position.set(cur.x, cur.y - FOOT * sc, cur.z - 0.02); a.shadow.quaternion.copy(camera.quaternion);
+    a.shadow.scale.set(sc * (0.55 + 0.45 * f), sc * (0.55 + 0.45 * f), 1); a.shadow.material.opacity = sc > 0.01 ? 0.5 * f : 0;
+
+    if (a.tag) {
+      if (cur.label > 0.01 && sc > 0.01) {
+        tmp.set(cur.x, cur.y + lift - 0.78 * sc, cur.z).project(camera);
+        a.tag.style.transform = 'translate3d(' + ((tmp.x * 0.5 + 0.5) * innerWidth).toFixed(1) + 'px,' + ((-tmp.y * 0.5 + 0.5) * innerHeight + 6).toFixed(1) + 'px,0) translate(-50%,0)';
+        a.tag.style.opacity = cur.label.toFixed(3); a.tagOn = true;
+      } else if (a.tagOn) { a.tag.style.opacity = 0; a.tagOn = false; }
+    }
+  }
+  fieldMat.uniforms.uTime.value = t;
+  fieldMat.uniforms.uOpacity.value = lerp(FIELD[st.fa] ?? 0.4, FIELD[st.fb] ?? 0.4, same ? 0 : ease(clamp(st.t, 0, 1)));
+  renderer.render(scene, camera);
+};
+</script>
+</body>
+</html>
